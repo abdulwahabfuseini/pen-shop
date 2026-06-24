@@ -45,18 +45,41 @@ const ProductsManagement = () => {
 
   return (
     <div className="space-y-3 animate-in fade-in duration-1000">
+      <header className="flex flex-col justify-between gap-4 mb-10 md:flex-row md:items-end">
+        <div>
+          <p className="text-[10px] tracking-[0.3em] font-bold text-gold uppercase mb-2">
+            Management Overview
+          </p>
+          <h1 className="font-serif text-4xl text-ink md:text-5xl lg:text-6xl">
+            The Collection
+          </h1>
+        </div>
+
+        {/* Quick Stats Summary */}
+        <div className="flex gap-6">
+          <div className="text-right">
+            <p className="text-[10px] text-ink/40 uppercase tracking-widest font-bold">
+              System Status
+            </p>
+            <p className="text-xs font-bold text-emerald-600 uppercase flex items-center gap-2 justify-end">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
+              Live
+            </p>
+          </div>
+        </div>
+      </header>
       {/* HEADER SECTION */}
       <div className="flex flex-col justify-between gap-6 px-4 py-2.5 bg-white border border-gold/10 shadow-sm lg:flex-row md:items-center rounded-lg">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-16 h-16 bg-ink shadow-xl rounded-xl shrink-0">
-            <Eraser className="text-gold" size={28} />
+          <div className="flex items-center justify-center w-14 h-14 bg-ink shadow-xl rounded-xl shrink-0">
+            <Eraser className="text-gold" size={24} />
           </div>
           <div>
             <h2 className="font-serif text-3xl tracking-tight text-ink">
               Inventory
             </h2>
             <p className="text-[10px] font-bold text-gold uppercase tracking-[0.25em] mt-1">
-              Curating the Novarease collection
+              the Novarease collection
             </p>
           </div>
         </div>

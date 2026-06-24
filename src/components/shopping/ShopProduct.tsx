@@ -125,14 +125,14 @@ const ShopProduct = () => {
 
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
           {/* LEFT: CURATION FORM */}
-          <form onSubmit={handlePlaceOrder} className="space-y-12">
-            {/* Client Identity */}
-            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-[2rem]">
+          <form onSubmit={handlePlaceOrder} className="space-y-6">
+            {/* Customer Identity */}
+            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-lg">
               <h2 className="flex items-center gap-3 mb-10 font-serif text-xl text-ink uppercase tracking-widest">
-                <User className="text-gold" size={18} /> Client Identity
+                <User className="text-gold" size={18} /> Customer Identity
               </h2>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
                       Full Name
@@ -141,7 +141,7 @@ const ShopProduct = () => {
                       name="customerName"
                       required
                       placeholder="Jane Doe"
-                      className="w-full p-4 bg-cream/20 border border-gold/20 rounded-xl outline-none focus:ring-1 focus:ring-gold/40 text-sm font-medium"
+                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
                     />
                   </div>
                   <div className="space-y-2">
@@ -152,7 +152,7 @@ const ShopProduct = () => {
                       name="customerPhone"
                       required
                       placeholder="(555) 000-0000"
-                      className="w-full p-4 bg-cream/20 border border-gold/20 rounded-xl outline-none focus:ring-1 focus:ring-gold/40 text-sm font-medium"
+                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
                     />
                   </div>
                 </div>
@@ -165,16 +165,16 @@ const ShopProduct = () => {
                     type="email"
                     required
                     placeholder="curator@example.com"
-                    className="w-full p-4 bg-cream/20 border border-gold/20 rounded-xl outline-none focus:ring-1 focus:ring-gold/40 text-sm font-medium"
+                    className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
                   />
                 </div>
               </div>
             </section>
 
             {/* Logistics (US Format) */}
-            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-[2rem]">
+            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-lg">
               <h2 className="flex items-center gap-3 mb-10 font-serif text-xl text-ink uppercase tracking-widest">
-                <MapPin className="text-gold" size={18} /> Shipping Logistics
+                <MapPin className="text-gold" size={18} /> Delivery Address
               </h2>
               <div className="space-y-6">
                 <div className="space-y-2">
@@ -185,7 +185,7 @@ const ShopProduct = () => {
                     name="streetName"
                     required
                     placeholder="123 Luxury Lane"
-                    className="w-full p-4 bg-cream/20 border border-gold/20 rounded-xl outline-none focus:ring-1 focus:ring-gold/40 text-sm font-medium"
+                    className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
                   />
                 </div>
                 <div className="space-y-2">
@@ -195,10 +195,10 @@ const ShopProduct = () => {
                   <input
                     name="houseAddress"
                     placeholder="Apt 4B"
-                    className="w-full p-4 bg-cream/20 border border-gold/20 rounded-xl outline-none focus:ring-1 focus:ring-gold/40 text-sm font-medium"
+                    className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
                   />
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
                       City
@@ -207,7 +207,7 @@ const ShopProduct = () => {
                       name="town"
                       required
                       placeholder="New York"
-                      className="w-full p-4 bg-cream/20 border border-gold/20 rounded-xl outline-none focus:ring-1 focus:ring-gold/40 text-sm font-medium"
+                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
                     />
                   </div>
                   <div className="space-y-2">
@@ -218,7 +218,7 @@ const ShopProduct = () => {
                       name="state"
                       required
                       placeholder="NEW YORK"
-                      className="w-full p-4 bg-cream/20 border border-gold/20 rounded-xl outline-none focus:ring-1 focus:ring-gold/40 text-sm font-medium uppercase"
+                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium uppercase"
                     />
                   </div>
                   <div className="space-y-2">
@@ -229,7 +229,7 @@ const ShopProduct = () => {
                       name="zipCode"
                       required
                       placeholder="10001"
-                      className="w-full p-4 bg-cream/20 border border-gold/20 rounded-xl outline-none focus:ring-1 focus:ring-gold/40 text-sm font-medium"
+                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
                     />
                   </div>
                 </div>
@@ -237,7 +237,7 @@ const ShopProduct = () => {
             </section>
 
             {/* Payment Method */}
-            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-[2rem]">
+            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-lg">
               <div className="flex justify-between items-center mb-10">
                 <h2 className="flex items-center gap-3 font-serif text-xl text-ink uppercase tracking-widest">
                   <ShieldCheck className="text-gold" size={18} /> Secure Vault
@@ -283,11 +283,11 @@ const ShopProduct = () => {
 
           {/* RIGHT: MANIFEST SUMMARY */}
           <div className="lg:sticky lg:top-24 h-fit">
-            <div className="p-8 md:p-12 text-cream bg-ink shadow-2xl rounded-[3rem] border border-white/5 relative overflow-hidden">
+            <div className="p-8 md:p-12 text-cream bg-ink shadow-2xl rounded-lg border border-white/5 relative overflow-hidden">
               <Globe className="absolute -bottom-10 -right-10 w-48 h-48 text-white/[0.02] rotate-12" />
 
               <h2 className="mb-12 font-serif text-2xl uppercase tracking-[0.2em] border-b border-white/10 pb-6 text-gold">
-                Manifest Summary
+                Order Summary
               </h2>
 
               <div className="space-y-8 max-h-[380px] overflow-y-auto pr-4 custom-scrollbar mb-12">
@@ -340,7 +340,7 @@ const ShopProduct = () => {
               </div>
 
               <div className="mt-12 text-center border-t border-white/5 pt-8">
-                <p className="text-[8px] text-white/20 uppercase tracking-[0.4em]">
+                <p className="text-[8px] text-white/80 uppercase tracking-[0.4em]">
                   Novarease Operations
                 </p>
               </div>

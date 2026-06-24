@@ -13,7 +13,7 @@ const Receipt = () => {
   const receiptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`/api/orders`) // You might need a GET /api/orders/[id] for this
+    fetch(`/api/orders`)
       .then((res) => res.json())
       .then((json) => {
         const found = json.data.find((o: any) => o.id === orderId);
@@ -41,13 +41,13 @@ const Receipt = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#EDE9DF] py-12 px-6">
-      <div className="max-w-4xl mx-auto flex justify-between items-center mb-8">
+    <div className="min-h-screen py-12 px-6 max-w-4xl mx-auto">
+      <div className=" flex justify-between items-center mb-8">
         <Link
           href="/"
           className="flex items-center gap-2 text-[10px] font-bold text-ink/40 uppercase tracking-widest hover:text-ink transition-colors"
         >
-          <ArrowLeft size={14} /> Close Dossier
+          <ArrowLeft size={14} /> Close
         </Link>
         <button
           onClick={downloadPDF}
@@ -60,13 +60,13 @@ const Receipt = () => {
       {/* THE ACTUAL PRINTABLE RECEIPT */}
       <div
         ref={receiptRef}
-        className="bg-white p-12 md:p-20 rounded-[3rem] shadow-2xl border border-gold/10 relative overflow-hidden"
+        className="bg-white p-10 rounded-lg shadow-xl border-2 border-gold/20 relative overflow-hidden"
       >
         {/* Aesthetic Background Mark */}
         <Eraser className="absolute -top-20 -right-20 w-80 h-80 text-gold/5 rotate-12" />
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start gap-10 mb-20 relative z-10">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-10 mb-10 relative z-10">
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-ink rounded-lg">
@@ -77,7 +77,7 @@ const Receipt = () => {
               </span>
             </div>
             <p className="text-[10px] font-bold text-ink/30 uppercase tracking-[0.3em]">
-              Precision Archival Instruments
+              Precision Order Instrument
             </p>
           </div>
           <div className="text-right">
@@ -94,10 +94,10 @@ const Receipt = () => {
         </div>
 
         {/* Address Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-20 relative z-10 border-t border-gold/10 pt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-20 relative z-10 border-t-2 border-gold/20 pt-10">
           <div>
             <p className="text-[10px] font-black text-gold uppercase tracking-[0.3em] mb-4">
-              Client Detail
+              Customer Detail
             </p>
             <h3 className="font-serif text-2xl text-ink mb-2 uppercase">
               {order.customerName}
@@ -111,7 +111,7 @@ const Receipt = () => {
           </div>
           <div className="md:text-right">
             <p className="text-[10px] font-black text-gold uppercase tracking-[0.3em] mb-4">
-              Shipping Destination
+              Delivery Destination
             </p>
             <p className="text-sm text-ink/60 font-medium leading-relaxed italic">
               {order.houseAddress}, {order.streetName}
@@ -124,11 +124,11 @@ const Receipt = () => {
         </div>
 
         {/* Line Items */}
-        <div className="mb-20 relative z-10">
+        <div className="mb-10 relative z-10">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b-2 border-gold/20 text-[10px] font-black text-gold uppercase tracking-[0.3em]">
-                <th className="py-4 font-black">Instrument</th>
+                <th className="py-4 font-black">Product</th>
                 <th className="py-4 px-4 text-center">Qty</th>
                 <th className="py-4 text-right">Valuation</th>
               </tr>
@@ -136,7 +136,7 @@ const Receipt = () => {
             <tbody className="divide-y divide-gold/5">
               {order.items?.map((item: any) => (
                 <tr key={item.id} className="text-ink">
-                  <td className="py-6 font-serif text-xl lowercase italic">
+                  <td className="py-6 font-serif text-xl capitalize italic">
                     {item.productName}
                   </td>
                   <td className="py-6 px-4 text-center font-bold text-sm">
@@ -152,11 +152,11 @@ const Receipt = () => {
         </div>
 
         {/* Total Block */}
-        <div className="flex flex-col items-end border-t-2 border-ink pt-8 relative z-10">
-          <div className="w-full md:w-64 space-y-4">
+        <div className="flex flex-col items-end border-t-2 border-gold/20 pt-8 relative z-10">
+          <div className="w-full md:max-w-sm space-y-4">
             <div className="flex justify-between text-[11px] font-bold text-ink/40 uppercase tracking-widest">
               <span>Subtotal</span>
-              <span className="text-ink font-serif italic">
+              <span className="text-ink text-lg font-serif italic">
                 $ {order.subtotal.toFixed(2)}
               </span>
             </div>
@@ -178,7 +178,7 @@ const Receipt = () => {
         {/* Footer */}
         <div className="mt-32 text-center relative z-10 border-t border-gold/5 pt-12 flex flex-col items-center gap-6">
           <p className="text-[9px] text-ink/30 uppercase tracking-[0.5em] leading-relaxed max-w-sm">
-            Every Novarease instrument is a testament to precision and clarity.
+            Every Novarease Product is a testament to precision and clarity.
             Thank you for your archival commitment.
           </p>
           <Globe size={24} className="text-gold/20" strokeWidth={1} />

@@ -134,27 +134,27 @@ const OrdersList = () => {
       <div className="flex flex-col items-center justify-center py-40 gap-4 bg-[#F5F2EB]">
         <Loader2 className="text-gold animate-spin" size={32} />
         <p className="text-[10px] font-bold text-gold uppercase tracking-[0.4em] animate-pulse">
-          Accessing Archives
+          Accessing Orders
         </p>
       </div>
     );
 
   return (
     <div className="min-h-screen bg-[#F5F2EB] text-[#1A1A18] pb-20">
-      <div className="max-w-7xl mx-auto space-y-12">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* --- HEADER --- */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gold/10 pb-10">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-2 border-gold/20 pb-4">
           <div>
             <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] mb-2">
               Novarease Logistics
             </p>
             <h1 className="font-serif text-5xl md:text-6xl text-ink italic">
               Order{" "}
-              <span className="font-sans not-italic font-light">Manifest</span>
+              <span className="font-sans not-italic font-light">Requests</span>
             </h1>
           </div>
 
-          <div className="flex gap-2 bg-white/50 p-1.5 rounded-full border border-gold/10 backdrop-blur-sm">
+          <div className="flex gap-2 bg-white/50 p-1.5 rounded-full border-2 border-gold/10 backdrop-blur-sm">
             {["ALL", "PROCESSING", "DELIVERED"].map((f) => (
               <button
                 key={f}
@@ -200,10 +200,10 @@ const OrdersList = () => {
                       <div
                         key={order.id}
                         onClick={() => handleOpenOrder(order)}
-                        className="group bg-white p-6 rounded-[2rem] border border-gold/10 shadow-sm hover:shadow-xl hover:shadow-gold/5 transition-all cursor-pointer"
+                        className="group bg-white p-6 rounded-lg border-2 border-gold/20 shadow-sm hover:shadow-xl hover:shadow-gold/5 transition-all cursor-pointer"
                       >
-                        <div className="flex justify-between items-start mb-6">
-                          <div className={`p-3 rounded-2xl ${theme.bg}`}>
+                        <div className="flex justify-between items-start mb-3">
+                          <div className={`p-3 rounded-xl ${theme.bg}`}>
                             <theme.icon
                               size={20}
                               style={{ color: theme.color }}
@@ -231,7 +231,7 @@ const OrdersList = () => {
                           </div>
                         </div>
 
-                        <div className="mt-8 pt-5 border-t border-gold/5 flex justify-between items-center">
+                        <div className="mt-4 pt-3 border-t-2 border-gold/10 flex justify-between items-center">
                           <span className="font-serif text-lg text-gold">
                             ${order.totalAmount.toFixed(2)}
                           </span>
@@ -264,7 +264,7 @@ const OrdersList = () => {
       >
         {selectedOrder && (
           <div className="h-full flex flex-col">
-            <div className="p-8 border-b border-gold/10 bg-white/50 backdrop-blur-md flex justify-between items-center">
+            <div className="p-6 border-b border-gold/10 bg-white/50 backdrop-blur-md flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setSelectedOrder(null)}
@@ -285,28 +285,43 @@ const OrdersList = () => {
 
             <div className="flex-grow p-8 space-y-8 overflow-y-auto">
               {/* Lifecycle Control */}
-              <div className="bg-white p-6 rounded-[2rem] border border-gold/10 shadow-sm flex items-center justify-between">
+              {/* Lifecycle Control */}
+              <div className="bg-white p-6 rounded-lg border-2 border-gold/20 shadow-sm flex items-center justify-between">
                 <Select
                   value={tempStatus}
                   className="w-48 h-12 custom-luxury-select"
                   onChange={setTempStatus}
+                  // DISABLE if the actual order status in the database is already DELIVERED
+                  disabled={
+                    selectedOrder.orderStatus === "DELIVERED" || isUpdating
+                  }
                 >
                   <Option value="PROCESSING">PROCESSING</Option>
                   <Option value="DELIVERED">DELIVERED</Option>
                 </Select>
-                {tempStatus !== selectedOrder.orderStatus && (
-                  <button
-                    onClick={handleSaveStatus}
-                    className="bg-ink text-gold px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-ink transition-all"
-                  >
-                    Update
-                  </button>
+
+                {/* Only show the update button if the status is different AND not already delivered */}
+                {tempStatus !== selectedOrder.orderStatus &&
+                  selectedOrder.orderStatus !== "DELIVERED" && (
+                    <button
+                      onClick={handleSaveStatus}
+                      className="bg-ink text-gold px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-ink transition-all"
+                    >
+                      Update
+                    </button>
+                  )}
+
+                {/* Optional: Show a "Completed" badge if locked */}
+                {selectedOrder.orderStatus === "DELIVERED" && (
+                  <div className="flex items-center gap-2 text-emerald-600 text-[10px] font-bold uppercase tracking-widest">
+                    <CheckCircle size={14} /> Order Finalized
+                  </div>
                 )}
               </div>
 
               {/* Identity & Destination */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-6 bg-white rounded-[2rem] border border-gold/10 space-y-4">
+                <div className="p-6 bg-white rounded-lg border-2 border-gold/20 space-y-4">
                   <User size={16} className="text-gold" />
                   <div>
                     <p className="text-[9px] font-bold text-ink/30 uppercase tracking-widest mb-1">
@@ -320,7 +335,7 @@ const OrdersList = () => {
                     </p>
                   </div>
                 </div>
-                <div className="p-6 bg-white rounded-[2rem] border border-gold/10 space-y-4">
+                <div className="p-6 bg-white rounded-lg border-2 border-gold/20 space-y-4">
                   <MapPin size={16} className="text-gold" />
                   <div>
                     <p className="text-[9px] font-bold text-ink/30 uppercase tracking-widest mb-1">
@@ -337,7 +352,7 @@ const OrdersList = () => {
               </div>
 
               {/* Items */}
-              <div className="p-8 bg-ink rounded-[2.5rem] text-cream relative overflow-hidden shadow-2xl">
+              <div className="p-8 bg-ink rounded-lg text-cream relative overflow-hidden shadow-2xl">
                 <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] mb-8">
                   Selected Instruments
                 </p>

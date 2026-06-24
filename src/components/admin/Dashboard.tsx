@@ -13,12 +13,21 @@ import {
 } from "lucide-react";
 import ProductsManagement from "./ProductManagement";
 import OrdersList from "./OrdersList";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type TabType = "products" | "orders";
 
 export default function NovareaseDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("products");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+   const { data: session, status } = useSession();
+  const router = useRouter();
+
+    if (status === "unauthenticated") {
+    router.replace("/admin-dashboard/login");
+    return null;
+  }
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -115,29 +124,7 @@ export default function NovareaseDashboard() {
       </aside>
       {/* --- MAIN DASHBOARD CONTENT --- */}
       <main className="flex-grow p-4 mt-20 md:p-12 lg:mt-0 overflow-x-hidden">
-        <header className="flex flex-col justify-between gap-4 mb-10 md:flex-row md:items-end">
-          <div>
-            <p className="text-[10px] tracking-[0.3em] font-bold text-gold uppercase mb-2">
-              Management Overview
-            </p>
-            <h1 className="font-serif text-4xl text-ink md:text-5xl lg:text-6xl">
-              {activeTab === "products" ? "The Collection" : "Client Requests"}
-            </h1>
-          </div>
-
-          {/* Quick Stats Summary */}
-          <div className="flex gap-6">
-            <div className="text-right">
-              <p className="text-[10px] text-ink/40 uppercase tracking-widest font-bold">
-                System Status
-              </p>
-              <p className="text-xs font-bold text-emerald-600 uppercase flex items-center gap-2 justify-end">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
-                Live
-              </p>
-            </div>
-          </div>
-        </header>
+        
 
         {/* Dynamic Content View */}
         <section className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
