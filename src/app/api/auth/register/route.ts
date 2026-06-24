@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 // Use a more reliable transporter setup
 const transporter = nodemailer.createTransport({
-  service: "gmail", // Using 'service' is more reliable for Gmail than manual host/port
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 export async function GET(req: Request) {
   try {
     // const secretKey = req.headers.get("x-secret-key");
-    // if (secretKey !== process.env.ADMIN_SECRET_KEY) {
+    // if (secretKey !== process.env.USER_SECRET_KEY) {
     //   return NextResponse.json(
     //     { error: "Unauthorized access" },
     //     { status: 401 },
@@ -48,13 +48,19 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { firstName, lastName, email, phoneNumber, secretKey } =
-      await req.json();
+    const { firstName, lastName, email, phoneNumber, role } = await req.json();
 
-    if (secretKey !== process.env.ADMIN_SECRET_KEY) {
+    // if (secretKey !== process.env.USER_SECRET_KEY) {
+    //   return NextResponse.json(
+    //     { error: "Unauthorized Secret Key" },
+    //     { status: 401 },
+    //   );
+    // }
+
+    if (!firstName || !email || !role) {
       return NextResponse.json(
-        { error: "Unauthorized Secret Key" },
-        { status: 401 },
+        { error: "Missing required fields" },
+        { status: 400 },
       );
     }
 
@@ -64,39 +70,77 @@ export async function POST(req: Request) {
 
     if (existing) {
       return NextResponse.json(
-        { error: "Admin already exists" },
+        { error: "User already exists" },
         { status: 400 },
       );
     }
 
-    const tempPassword = uuidv4();
+    const tempPassword = uuidv4().substring(0, 8); 
     const hashedPassword = await bcrypt.hash(tempPassword, 12);
-    const appName = "Perfect Man Hub";
+    const appName = "YamaTech Ltd";
 
-    // 1. SEND EMAIL FIRST (If this fails, we don't create the user)
-    // This prevents creating "ghost users" who don't have their passwords.
     try {
+       const isRoleAdmin = role === "ADMIN";
+
       await transporter.sendMail({
-        from: `"PERFECT MAN HUB" <${process.env.EMAIL_USER}>`,
+        from: `"YAMATECH SECURITY" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: "ADMIN ACCESS GRANTED",
+        subject: `Access Granted - ${isRoleAdmin ? "Administrative" : "Staff"} Portal`,
         html: `
-        <div>
-          <p style="padding-bottom: 4px">Welcome, <b>${firstName} ${lastName}</b>. Your administrative key is below...</p>
-          <div style="background-color: #000; color: #fff; padding: 40px; font-family: sans-serif; border-radius: 20px;">
-            <h1 style="color: #f59e0b; text-transform: uppercase; letter-spacing: 2px;">Protocol Initialized</h1>
-            <p style="font-size: 14px; color: #a1a1aa;">You have been granted administrative access to the Alpha System.</p>
-            <div style="background-color: #18181b; padding: 20px; border: 1px solid #27272a; border-radius: 10px; margin: 30px 0;">
-              <p style="font-size: 10px; color: #71717a; text-transform: uppercase; font-weight: bold;">Temporary Command Key</p>
-              <p style="font-size: 18px; color: #f59e0b; font-weight: bold; font-family: monospace;">${tempPassword}</p>
+    <div style="background-color: #f1f5f9; padding: 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b;">
+      <div style="max-width: 620px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+        
+        <!-- Header -->
+        <div style="background-color: ${isRoleAdmin ? "#0f172a" : "#2563eb"}; padding: 30px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 2px; font-weight: 900;">
+            ${isRoleAdmin ? "Admin Account Provisioned" : "Staff Account Created"}
+          </h1>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 30px 20px;">
+          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+            Hello <b>${firstName}</b>,
+          </p>
+          <p>You have been assigned <b>${role}</b> access to the Yamatech Inventory System.</p>
+
+          <!-- Credential Box -->
+          <div style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; margin: 20px 0; text-align: center;">
+            <p style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px;">
+              Temporary Access Password
+            </p>
+            <div style="background-color: #ffffff; border: 1.5px dashed #cbd5e1; padding: 12px; display: inline-block; min-width: 200px;">
+              <span style="font-size: 22px; color: #2563eb; font-weight: bold; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px;">
+                ${tempPassword}
+              </span>
             </div>
-            <p style="font-size: 12px; color: #71717a;">Use your email and this UUID to log in. You will be prompted to set a permanent password upon first access.</p>
           </div>
-           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #eeeeee; margin-top: 20px; font-size: 0.9em; color: #777;">
-          <p>© ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
+
+          <div style="border-left: 4px solid #2563eb; padding-left: 15px; margin-bottom: 30px;">
+            <p style="font-size: 13px; color: #475569; margin: 0;">
+              <b>Security Requirement:</b> You will be required to update this temporary password immediately upon your first successful login to ensure account integrity.
+            </p>
+          </div>
+
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/signin" 
+             style="display: block; background-color: #0f172a; color: #ffffff; padding: 15px; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
+            Access Dashboard
+          </a>
         </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f8fafc; padding: 30px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0; font-weight: bold; color: #64748b;">
+            &copy; ${new Date().getFullYear()} YAMATECH | IT Security Department
+          </p>
+          <p style="margin: 5px 0 0;">Authorized Personnel Only</p>
+          <p style="margin: 15px 0 0; font-size: 10px;">
+            This is an automated system message. Please do not reply directly to this email.
+          </p>
         </div>
-        `,
+      </div>
+    </div>
+  `,
       });
     } catch (mailError: any) {
       console.error("NODEMAILER ERROR:", mailError.message);
@@ -115,12 +159,13 @@ export async function POST(req: Request) {
         phoneNumber,
         password: hashedPassword,
         passwordChanged: false,
+        role,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: "Admin created and email sent.",
+      message: "User created and email sent.",
     });
   } catch (error) {
     console.error("GENERAL REGISTRATION ERROR:", error);

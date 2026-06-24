@@ -13,12 +13,21 @@ import {
 } from "lucide-react";
 import ProductsManagement from "./ProductManagement";
 import OrdersList from "./OrdersList";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type TabType = "products" | "orders";
 
 export default function NovareaseDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("products");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+   const { data: session, status } = useSession();
+  const router = useRouter();
+
+    if (status === "unauthenticated") {
+    router.replace("/admin-dashboard/login");
+    return null;
+  }
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
