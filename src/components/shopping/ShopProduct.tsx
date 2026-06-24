@@ -1,18 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useForm } from "react-hook-form"; // Import Hook Form
+import { State, City } from "country-state-city";
 import { RootState } from "@/store/Store";
 import { CartActions } from "@/store/CartSlice";
 import {
   CreditCard,
-  Smartphone,
   Lock,
   Loader2,
   ArrowLeft,
   MapPin,
   User,
-  ShieldCheck,
+  ChevronDown,
+  Phone,
+  Flag,
+  AlertCircle,
   Globe,
 } from "lucide-react";
 import Link from "next/link";
@@ -24,35 +28,51 @@ const ShopProduct = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
+  // 1. Initialize React Hook Form
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm();
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "momo">("card");
+  const selectedStateCode = watch("stateCode");
+  const selectedCity = watch("town");
+
+  const allStates = useMemo(() => State.getStatesOfCountry("US"), []);
+  const filteredCities = useMemo(() => {
+    return selectedStateCode
+      ? City.getCitiesOfState("US", selectedStateCode)
+      : [];
+  }, [selectedStateCode]);
 
   const subtotal = items.reduce((acc, item) => acc + item.totalPrice, 0);
   const shippingCost = 0.0; // Complimentary
   const totalAmount = subtotal + shippingCost;
 
-  const handlePlaceOrder = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onFormSubmit = async (data: any) => {
     setIsProcessing(true);
-
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const customerEmail = formData.get("customerEmail") as string;
+    const stateObj = allStates.find((s) => s.isoCode === data.stateCode);
 
     const orderData = {
-      customerName: formData.get("customerName"),
-      customerEmail: customerEmail,
-      customerPhone: formData.get("customerPhone"),
-      houseAddress: formData.get("houseAddress"),
-      streetName: formData.get("streetName"),
-      town: formData.get("town"),
-      state: formData.get("state"),
-      zipCode: formData.get("zipCode"),
+      orderNumber: `NVR-${Math.random().toString(36).toUpperCase().substring(2, 10)}`,
+      customerName: data.customerName,
+      customerEmail: data.customerEmail,
+      customerPhone: data.customerPhone,
+      houseAddress: data.houseAddress,
+      streetName: data.streetName,
+      town: data.town,
+      state: stateObj?.name || "",
+      zipCode: data.zipCode,
       country: "USA",
-      subtotal: subtotal,
-      shippingCost: shippingCost,
-      totalAmount: totalAmount,
-      // THE CRITICAL MAPPING
+      subtotal,
+      shippingCost: 0,
+      totalAmount,
+      currency: "USD",
+      paymentStatus: "PENDING",
       items: items.map((item: any) => ({
         productId: item.id,
         productName: item.name,
@@ -64,28 +84,23 @@ const ShopProduct = () => {
     };
 
     try {
-      // 1. Create the database record
       const dbRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
       });
-
       const result = await dbRes.json();
+      if (!dbRes.ok) throw new Error(result.message);
 
-      if (!dbRes.ok) throw new Error(result.message || "DB Save Failed");
-
-      // 2. Create Stripe session using the ID from the record we just created
       const stripeRes = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items, // Pass raw items for Stripe line_items
+          items,
           orderId: result.data.id,
-          customerEmail: customerEmail,
+          customerEmail: data.customerEmail,
         }),
       });
-
       const session = await stripeRes.json();
       if (session.url) window.location.href = session.url;
     } catch (error: any) {
@@ -93,6 +108,11 @@ const ShopProduct = () => {
       setIsProcessing(false);
     }
   };
+
+  const inputClass = (fieldName: string) => `
+    w-full p-4 bg-cream/20 border-2 rounded-xl outline-none text-sm font-medium transition-all
+    ${errors[fieldName] ? "border-red-500 bg-red-50/30" : "border-gold/20 focus:border-gold/50"}
+  `;
 
   if (items.length === 0) {
     return (
@@ -125,158 +145,221 @@ const ShopProduct = () => {
 
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
           {/* LEFT: CURATION FORM */}
-          <form onSubmit={handlePlaceOrder} className="space-y-6">
-            {/* Customer Identity */}
-            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-lg">
-              <h2 className="flex items-center gap-3 mb-10 font-serif text-xl text-ink uppercase tracking-widest">
+          <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
+            {/* --- IDENTITY SECTION --- */}
+            <section className="p-8 bg-white border border-gold/10 rounded-3xl shadow-sm">
+              <h2 className="flex items-center gap-3 mb-8 font-serif text-xl text-ink uppercase tracking-widest">
                 <User className="text-gold" size={18} /> Customer Identity
               </h2>
               <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
                       Full Name
                     </label>
                     <input
-                      name="customerName"
-                      required
+                      {...register("customerName", {
+                        required: "Name is required",
+                      })}
                       placeholder="Jane Doe"
-                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
+                      className={inputClass("customerName")}
                     />
+                    {errors.customerName && (
+                      <p className="text-red-500 text-[10px] font-bold uppercase mt-1 flex items-center gap-1">
+                        <AlertCircle size={10} />{" "}
+                        {errors.customerName.message as string}
+                      </p>
+                    )}
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
                       Phone Number
                     </label>
-                    <input
-                      name="customerPhone"
-                      required
-                      placeholder="(555) 000-0000"
-                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <span
+                        className={`absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold ${errors.customerPhone ? "text-red-500" : "text-ink/40"}`}
+                      >
+                        +1
+                      </span>
+                      <input
+                        type="tel"
+                        {...register("customerPhone", {
+                          required: "Phone number is required",
+                          pattern: {
+                            value: /^\d{10}$/,
+                            message: "Enter 10 digits",
+                          },
+                        })}
+                        placeholder="555 000 0000"
+                        className={`${inputClass("customerPhone")} pl-10`}
+                      />
+                    </div>
+                    {errors.customerPhone && (
+                      <p className="text-red-500 text-[10px] font-bold uppercase mt-1 flex items-center gap-1">
+                        <AlertCircle size={10} />{" "}
+                        {errors.customerPhone.message as string}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
                     Email Address
                   </label>
                   <input
-                    name="customerEmail"
                     type="email"
-                    required
-                    placeholder="curator@example.com"
-                    className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
+                    {...register("customerEmail", {
+                      required: "Email is required",
+                    })}
+                    placeholder="jane@usa.com"
+                    className={inputClass("customerEmail")}
                   />
+                  {errors.customerEmail && (
+                    <p className="text-red-500 text-[10px] font-bold uppercase mt-1 flex items-center gap-1">
+                      <AlertCircle size={10} />{" "}
+                      {errors.customerEmail.message as string}
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
 
-            {/* Logistics (US Format) */}
-            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-lg">
-              <h2 className="flex items-center gap-3 mb-10 font-serif text-xl text-ink uppercase tracking-widest">
-                <MapPin className="text-gold" size={18} /> Delivery Address
+            {/* --- LOGISTICS SECTION --- */}
+            <section className="p-8 bg-white border border-gold/10 rounded-3xl shadow-sm">
+              <h2 className="flex items-center gap-3 mb-8 font-serif text-xl text-ink uppercase tracking-widest">
+                <MapPin className="text-gold" size={18} /> Shipping Logistics
               </h2>
+
               <div className="space-y-6">
+                {/* READ ONLY COUNTRY FIELD */}
                 <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
+                    Country
+                  </label>
+                  <div className="w-full p-4 bg-cream/10 border border-gold/10 rounded-xl text-sm font-bold text-ink/40 flex items-center gap-3 cursor-not-allowed">
+                    <Flag size={14} /> United States (USA)
+                  </div>
+                </div>
+                <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
                     Street Address
                   </label>
                   <input
-                    name="streetName"
-                    required
-                    placeholder="123 Luxury Lane"
-                    className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
+                    {...register("streetName", {
+                      required: "Address is required",
+                    })}
+                    placeholder="123 Luxury Ave"
+                    className={inputClass("streetName")}
                   />
+                  {errors.streetName && (
+                    <p className="text-red-500 text-[10px] font-bold uppercase mt-1 flex items-center gap-1">
+                      <AlertCircle size={10} />{" "}
+                      {errors.streetName.message as string}
+                    </p>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
-                    Apartment, suite, etc. (optional)
-                  </label>
-                  <input
-                    name="houseAddress"
-                    placeholder="Apt 4B"
-                    className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
-                  />
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
-                      City
-                    </label>
-                    <input
-                      name="town"
-                      required
-                      placeholder="New York"
-                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
-                    />
-                  </div>
-                  <div className="space-y-2">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* STATE DROPDOWN */}
+                  <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
                       State
                     </label>
-                    <input
-                      name="state"
-                      required
-                      placeholder="NEW YORK"
-                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium uppercase"
-                    />
+                    <div className="relative">
+                      <select
+                        {...register("stateCode", {
+                          required: "Select a state",
+                        })}
+                        onChange={(e) => {
+                          setValue("stateCode", e.target.value);
+                          setValue("town", ""); // Reset city
+                        }}
+                        className={`${inputClass("stateCode")} appearance-none cursor-pointer`}
+                      >
+                        <option value="">Select State</option>
+                        {allStates.map((s) => (
+                          <option key={s.isoCode} value={s.isoCode}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gold/60 pointer-events-none"
+                        size={16}
+                      />
+                    </div>
+                    {errors.stateCode && (
+                      <p className="text-red-500 text-[10px] font-bold uppercase mt-1 flex items-center gap-1">
+                        <AlertCircle size={10} />{" "}
+                        {errors.stateCode.message as string}
+                      </p>
+                    )}
                   </div>
-                  <div className="space-y-2">
+
+                  {/* CITY DROPDOWN */}
+                  <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
-                      ZIP Code
+                      City
                     </label>
-                    <input
-                      name="zipCode"
-                      required
-                      placeholder="10001"
-                      className="w-full p-3 bg-cream/20 border-2 border-gold/20 rounded-lg outline-none focus:ring-1 focus:ring-gold/40 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <select
+                        {...register("town", { required: "Select a city" })}
+                        disabled={!selectedStateCode}
+                        className={`${inputClass("town")} appearance-none ${!selectedStateCode ? "bg-gray-100 opacity-50" : "cursor-pointer"}`}
+                      >
+                        <option value="">
+                          {selectedStateCode
+                            ? "Select City"
+                            : "Choose State First"}
+                        </option>
+                        {filteredCities.map((c) => (
+                          <option key={c.name} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gold/60 pointer-events-none"
+                        size={16}
+                      />
+                    </div>
+                    {errors.town && (
+                      <p className="text-red-500 text-[10px] font-bold uppercase mt-1 flex items-center gap-1">
+                        <AlertCircle size={10} />{" "}
+                        {errors.town.message as string}
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-            </section>
 
-            {/* Payment Method */}
-            <section className="p-8 bg-white border border-gold/10 shadow-sm rounded-lg">
-              <div className="flex justify-between items-center mb-10">
-                <h2 className="flex items-center gap-3 font-serif text-xl text-ink uppercase tracking-widest">
-                  <ShieldCheck className="text-gold" size={18} /> Secure Vault
-                </h2>
-                <div className="flex items-center gap-2 text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
-                  Encrypted
+                <div className="space-y-1 md:w-1/2">
+                  <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
+                    ZIP Code
+                  </label>
+                  <input
+                    {...register("zipCode", { required: "ZIP required" })}
+                    placeholder="10001"
+                    className={inputClass("zipCode")}
+                  />
+                  {errors.zipCode && (
+                    <p className="text-red-500 text-[10px] font-bold uppercase mt-1 flex items-center gap-1">
+                      <AlertCircle size={10} />{" "}
+                      {errors.zipCode.message as string}
+                    </p>
+                  )}
                 </div>
               </div>
-
-              <button
-                type="button"
-                className="w-full flex items-center justify-between p-6 rounded-[1.5rem] border-2 border-gold bg-gold/5 shadow-xl shadow-gold/5"
-              >
-                <div className="flex items-center gap-4">
-                  <CreditCard className="text-gold" size={20} />
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em]">
-                    Secure Credit / Debit Card
-                  </span>
-                </div>
-                <Globe className="text-gold/30" size={16} />
-              </button>
-
-              <p className="mt-8 text-[10px] text-ink/30 text-center font-medium uppercase tracking-[0.2em] leading-relaxed">
-                Stripe Secure Checkout will initialize <br /> upon curation of
-                this record.
-              </p>
             </section>
 
             <button
               disabled={isProcessing}
-              className="flex items-center justify-center w-full gap-4 py-6 text-[11px] font-black tracking-[0.4em] text-cream transition-all bg-ink rounded-full hover:bg-gold active:scale-95 disabled:bg-ink/40 uppercase shadow-2xl shadow-gold/20"
+              type="submit"
+              className="w-full py-6 bg-ink text-cream rounded-full text-[11px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-gold/20 hover:bg-gold transition-all disabled:bg-ink/40"
             >
               {isProcessing ? (
-                <>
-                  <Loader2 className="animate-spin w-4 h-4" /> Synchronizing...
-                </>
+                <Loader2 className="animate-spin mx-auto" />
               ) : (
-                <>Complete Curation — ${totalAmount.toFixed(2)}</>
+                `Purchase Selection — $${totalAmount.toFixed(2)}`
               )}
             </button>
           </form>

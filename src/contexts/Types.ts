@@ -54,3 +54,16 @@ export interface Order {
   createdAt: string;
   items: OrderItem[];
 }
+
+
+export interface IUser {
+  id: string;
+  username: string | null | undefined;
+  lastName?: string | null;
+  firstName?: string | null;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  password?: string | null;
+  passwordChanged?: boolean;
+}

@@ -12,7 +12,7 @@ const AdminLogin = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  if (status === "authenticated" && session?.user?.role === "ADMIN") {
+  if (status === "authenticated") {
     router.replace("/admin-dashboard");
     return null;
   }
