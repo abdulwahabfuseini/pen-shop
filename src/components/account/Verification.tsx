@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { RotateCcw, ArrowRight, TriangleAlert } from "lucide-react";
+import { RotateCcw, ShieldAlert, Eraser } from "lucide-react";
 import { Button, Input, Statistic, type InputRef, Tag } from "antd";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 const { Countdown } = Statistic;
@@ -25,7 +25,6 @@ const Verification = () => {
   const [resending, setResending] = useState(false);
   const [canResend, setCanResend] = useState(false);
   const [errors, setErrors] = useState("");
-  const [attemptMsg, setAttemptMsg] = useState("");
 
   const [deadline, setDeadline] = useState<number>(0);
 
@@ -44,10 +43,7 @@ const Verification = () => {
     } else {
       const newDeadline = now + 1000 * 60 * 10;
       setDeadline(newDeadline);
-      localStorage.setItem(
-        `otp_deadline_${identifier}`,
-        newDeadline.toString(),
-      );
+      localStorage.setItem(`otp_deadline_${identifier}`, newDeadline.toString());
       setCanResend(false);
     }
   }, [identifier, router]);
@@ -57,7 +53,7 @@ const Verification = () => {
   const maskEmail = (em: string | null) => {
     if (!em) return "your official email";
     const [name, domain] = em.split("@");
-    return `${name.substring(0, 5)}***@${domain}`;
+    return `${name.substring(0, 3)}***@${domain}`;
   };
 
   const handleChange = (index: number, value: string) => {
@@ -69,10 +65,7 @@ const Verification = () => {
     if (lastChar && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number,
-  ) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
@@ -105,17 +98,14 @@ const Verification = () => {
       });
 
       if (res.ok) {
-        toast.success("New security code sent.");
+        toast.success("Security Clearance Reset", { description: "A new token has been dispatched." });
         const newDeadline = Date.now() + 1000 * 60 * 10;
         setDeadline(newDeadline);
-        localStorage.setItem(
-          `otp_deadline_${identifier}`,
-          newDeadline.toString(),
-        );
+        localStorage.setItem(`otp_deadline_${identifier}`, newDeadline.toString());
         setCanResend(false);
       }
     } catch (error) {
-      toast.error("Failed to resend code.");
+      toast.error("Protocol Error", { description: "Failed to regenerate token." });
     } finally {
       setResending(false);
     }
@@ -126,7 +116,6 @@ const Verification = () => {
     const target = searchParams.get("target");
     setLoading(true);
     setErrors("");
-    setAttemptMsg("");
 
     try {
       const verifyRes = await fetch("/api/auth/verify-code", {
@@ -145,139 +134,141 @@ const Verification = () => {
 
         if (result?.ok) {
           localStorage.removeItem(`otp_deadline_${identifier}`);
-          toast.success("Identity validated.");
-          if (target === "admin") {
-            router.replace("/admin-dashboard");
-          } else {
-            router.replace("/");
-          }
+          toast.success("Access Authorized", { description: "Welcome back, Curator." });
+          router.replace(target === "admin" ? "/admin/dashboard" : "/");
         } else {
-          setErrors(result?.error || "Session initialization failed.");
+          setErrors(result?.error || "Session handshake failed.");
         }
       } else {
-        setErrors(verifyData.error || "Invalid or expired code.");
+        setErrors(verifyData.error || "The provided token is invalid.");
       }
     } catch (error) {
-      setErrors("Security protocol error.");
+      setErrors("Security synchronization failure.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="md:min-h-screen transition-colors duration-300 flex flex-col py-16 items-start md:pt-0 md:items-center justify-center p-4 md:bg-[#f8fafc]">
-      <div className="w-full max-w-[420px]">
-        <div className="flex flex-col items-center mb-6 text-center">
-          <h2 className="text-xl font-bold uppercase mt-4 text-[#1e3a8a]">
-            Identity Validation
-          </h2>
-          <h4 className="text-sm font-black uppercase text-gray-400">
-            NOVEREASE Security
-          </h4>
+    <div className="min-h-screen bg-[#F5F2EB] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-gold/5 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-ink/5 rounded-full blur-[120px]" />
+
+      <div className="w-full max-w-[460px] relative z-10">
+        
+        {/* Branding */}
+        <div className="text-center mb-10 animate-in fade-in slide-in-from-top-4 duration-1000">
+          <div className="inline-flex items-center justify-center p-3 bg-ink rounded-2xl shadow-xl shadow-gold/10 mb-6">
+            <Eraser className="w-6 h-6 text-gold" />
+          </div>
+          <h1 className="font-serif text-3xl tracking-[0.1em] text-ink uppercase">
+            Novarease
+          </h1>
+          <p className="text-gold text-[9px] font-black uppercase tracking-[0.4em] mt-2">
+            Identity Authorization
+          </p>
         </div>
 
-        <div className="py-5 px-5 md:px-8 rounded-2xl shadow-sm border-2 transition-colors duration-300 bg-white border-grey">
-          {/* Security Alert Box */}
-          {errors && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-red-50 border-l-4 border-red-600 p-4 mb-6 rounded-lg"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <TriangleAlert className="text-red-600" size={16} />
-                <span className="font-black text-red-800 uppercase text-[10px]">
-                  Security Warning
-                </span>
-              </div>
-              <p className="text-red-700 text-xs font-bold mb-0.5">{errors}</p>
-              {attemptMsg && (
-                <p className="text-red-600 text-[10px] italic m-0">
-                  {attemptMsg}
-                </p>
-              )}
-            </motion.div>
-          )}
+        <div className="bg-white/70 backdrop-blur-xl p-10 rounded-[2.5rem] border border-gold/10 shadow-2xl shadow-gold/5 relative overflow-hidden">
+          
+          <AnimatePresence>
+            {errors && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-red-50 border border-red-100 p-4 mb-8 rounded-2xl flex items-center gap-4"
+              >
+                <ShieldAlert className="text-red-600 shrink-0" size={18} />
+                <div>
+                  <p className="text-red-800 text-[10px] font-black uppercase tracking-widest leading-none mb-1">Authorization Denied</p>
+                  <p className="text-red-700 text-xs font-medium">{errors}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <div className="border rounded-xl py-4 px-2.5 mb-6 flex items-center justify-between bg-slate-50 border-grey">
+          <div className="p-5 bg-cream/40 border border-gold/10 rounded-2xl mb-10 flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold uppercase  text-slate-400">
-                Verifying Session:
+              <span className="text-[9px] font-bold uppercase tracking-widest text-ink/30 mb-1">
+                Active Session
               </span>
-              <span className="text-sm font-black capitalize text-slate-700">
+              <span className="text-sm font-black text-ink">
                 {firstName} {lastName}
               </span>
             </div>
-            <Tag
-              color="blue"
-              className="m-0 border-none font-bold uppercase text-[10px]"
-            >
-              SECURE
+            <Tag className="m-0 border-gold/20 bg-white text-gold font-black uppercase text-[8px] px-3 py-0.5 rounded-full tracking-tighter shadow-sm">
+              ENCRYPTED
             </Tag>
           </div>
 
-          <p className="text-base text-center mb-5">
-            Enter the 6-digit token sent to <br />
-            <span className="text-brown font-semibold">{maskEmail(email)}</span>
-          </p>
+          <div className="text-center mb-10">
+            <p className="text-xs text-ink/50 font-medium uppercase tracking-widest leading-relaxed">
+              Enter the 6-digit access token <br /> 
+              dispatched to <span className="text-gold font-bold">{maskEmail(email)}</span>
+            </p>
+          </div>
 
-          <div className="flex justify-center gap-2 mb-8">
+          <div className="flex justify-center gap-3 mb-10">
             {otp.map((digit, index) => (
               <Input
                 key={index}
-                ref={(el) => {
-                  inputRefs.current[index] = el;
-                }}
+                ref={(el) => { inputRefs.current[index] = el; }}
                 maxLength={1}
                 value={digit}
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 onPaste={handlePaste}
-                className="h-16 w-full sm:h-20 sm:w-14 text-center font-black text-3xl rounded-xl border-2 transition-all bg-white border-slate-200 focus:border-[#1e3a8a]"
+                className="h-16 w-full sm:h-20 sm:w-16 text-center font-serif text-3xl rounded-2xl border border-gold/10 transition-all bg-white hover:border-gold/40 focus:border-gold shadow-sm"
               />
             ))}
           </div>
 
           <Button
             type="primary"
-            htmlType="submit"
             onClick={handleSubmit}
             loading={loading}
             disabled={loading || !isOtpComplete}
-            className="w-full h-12 bg-brown hover:bg-slate-900 text-white font-bold rounded-xl flex items-center justify-center gap-3 border-none"
+            className="w-full h-16 bg-ink hover:!bg-gold text-cream font-black text-[11px] tracking-[0.3em] uppercase rounded-2xl border-none shadow-xl transition-all duration-500 active:scale-95 disabled:opacity-20"
           >
-            {loading ? "Validating..." : "Validate Identity"}
-            <ArrowRight size={18} />
+            {loading ? "VALIDATING..." : "Authorize Access"}
           </Button>
 
-          <div className="mt-8 text-center">
+          <div className="mt-10 text-center">
             {canResend ? (
               <button
                 onClick={handleResend}
                 disabled={resending}
-                className="text-xs font-bold text-amber-600 flex items-center gap-2 mx-auto hover:opacity-80"
+                className="text-[10px] font-black text-gold uppercase tracking-[0.2em] flex items-center gap-2 mx-auto hover:text-ink transition-colors"
               >
-                <RotateCcw size={14} />
-                {resending ? "Sending..." : "Resend Code"}
+                <RotateCcw size={12} />
+                {resending ? "Generating..." : "Request New Token"}
               </button>
             ) : (
-              <div className="text-[10px] font-bold flex items-center justify-center gap-2 text-slate-400">
-                New code available in
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-[9px] font-bold text-ink/30 uppercase tracking-[0.3em]">Next token available in</span>
                 {deadline > 0 && (
-                  <Countdown
-                    value={deadline}
-                    onFinish={() => setCanResend(true)}
-                    format="mm:ss"
-                    valueStyle={{
-                      fontSize: "11px",
-                      fontWeight: "900",
-                      color: "#1e3a8a",
-                    }}
-                  />
+                  <div className="flex items-center gap-2 bg-cream/40 px-4 py-1.5 rounded-full border border-gold/10">
+                    <Countdown
+                      value={deadline}
+                      onFinish={() => setCanResend(true)}
+                      format="mm:ss"
+                      valueStyle={{ fontSize: "12px", fontWeight: "900", color: "#B8973A", letterSpacing: "1px" }}
+                    />
+                  </div>
                 )}
               </div>
             )}
           </div>
+        </div>
+
+        <div className="text-center mt-12">
+            <p className="text-[9px] font-bold text-ink/30 uppercase tracking-[0.3em] leading-relaxed">
+              © {new Date().getFullYear()} Novarease Security Protocols
+              <br/>
+              Session ID: <span className="text-gold/40 font-mono italic">{identifier?.slice(0, 12)}</span>
+            </p>
         </div>
       </div>
     </div>

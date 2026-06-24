@@ -3,24 +3,16 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Form,
-  Input,
-  Button,
-  Typography,
-  message,
-  Spin,
-  ConfigProvider,
-  theme as antdTheme,
-} from "antd";
+import { Form, Input, Button, Typography, Spin, ConfigProvider } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
-  Circle,
   ShieldCheck,
   Lock,
   User as UserIcon,
-  Fingerprint,
+  Eraser,
+  Dot,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,12 +21,16 @@ const { Title } = Typography;
 // --- Sub-component: Requirement Item ---
 const PolicyItem = ({ text, isValid }: { text: string; isValid: boolean }) => (
   <div
-    className={`flex items-center gap-2 transition-colors duration-300 ${
-      isValid ? "text-emerald-500" : "text-slate-400"
+    className={`flex items-center gap-3 transition-all duration-500 ${
+      isValid ? "text-[#B8973A]" : "text-ink/30"
     }`}
   >
-    {isValid ? <CheckCircle2 size={14} /> : <Circle size={14} />}
-    <span className="text-[10px] font-bold uppercase tracking-wider">
+    {isValid ? (
+      <CheckCircle2 size={14} className="animate-in zoom-in" />
+    ) : (
+      <Dot size={14} />
+    )}
+    <span className="text-[9px] font-black uppercase tracking-[0.15em]">
       {text}
     </span>
   </div>
@@ -49,17 +45,13 @@ const SetupPasswordContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmFocused, setIsConfirmFocused] = useState(false);
 
-  // --- URL Parameters (From User Email Link) ---
+  const urlUserId = searchParams.get("id");
+  const urlFirstName = searchParams.get("fn") || "Curator";
+  const urlEmail = searchParams.get("em") || "Archives Identity";
 
-const urlUserId = searchParams.get("id");
-const urlFirstName = searchParams.get("fn") || "User";
-const urlEmail = searchParams.get("em") || searchParams.get("id"); 
-
-  // --- Form Watchers ---
   const newPassword = Form.useWatch("newPassword", form) || "";
   const confirmPassword = Form.useWatch("confirmPassword", form) || "";
 
-  // --- Password Complexity Logic ---
   const passChecks = useMemo(
     () => ({
       length: newPassword.length >= 8,
@@ -67,7 +59,7 @@ const urlEmail = searchParams.get("em") || searchParams.get("id");
       number: /\d/.test(newPassword),
       symbol: /[@$!%*?&_#-]/.test(newPassword),
     }),
-    [newPassword]
+    [newPassword],
   );
 
   const isPasswordValid = Object.values(passChecks).every(Boolean);
@@ -75,23 +67,21 @@ const urlEmail = searchParams.get("em") || searchParams.get("id");
   const isTyping = newPassword.length > 0;
   const showRequirements = isTyping && !isMatch && !isConfirmFocused;
 
-  // --- Security Gate ---
-useEffect(() => {
-  if (status === "authenticated" && session?.user?.passwordChanged === true) {
-    router.replace("/signin");
-    return;
-  }
-  if (status === "unauthenticated" && !urlUserId) {
-    router.replace("/signin");
-  }
-}, [status, session, router, urlUserId]);
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.passwordChanged === true) {
+      router.replace("/signin");
+      return;
+    }
+    if (status === "unauthenticated" && !urlUserId) {
+      router.replace("/signin");
+    }
+  }, [status, session, router, urlUserId]);
 
   const handleSubmit = async (values: any) => {
     setIsLoading(true);
-    const toastId = toast.loading("Finalizing security profile...");
+    const toastId = toast.loading("Encrypting archival access...");
 
     try {
-      // 1. Update Password in Database
       const response = await fetch("/api/auth/update-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,93 +92,95 @@ useEffect(() => {
       });
 
       const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Curation failed");
 
-      if (!response.ok) throw new Error(result.error || "Update failed");
-
-      toast.success("Security key established! Signing in...", { id: toastId });
-
-      // 2. Auto-Login using NextAuth
-      const loginResult = await signIn("credentials", {
-        identifier: urlEmail,
-        password: values.newPassword,
-        redirect: false,
-      });
-
-      if (loginResult?.ok) {
-        router.replace("/signin");
-      } else {
-        router.replace("/signin");
-      }
+      toast.success("Security Clearance Established", { id: toastId });
+      router.replace("/signin");
     } catch (err: any) {
-      toast.error(err.message || "An error occurred during activation", { id: toastId });
+      toast.error(err.message || "Archive synchronization error", {
+        id: toastId,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6">
-      {/* Background Decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-3xl" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-slate-200/50 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-[#F5F2EB] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-gold/5 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-ink/5 rounded-full blur-[120px]" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[420px] relative z-10"
+        className="w-full max-w-[440px] relative z-10"
       >
-        <div className="text-center mb-5">
-          <div className="inline-flex relative mb-6">
-            <div className="absolute inset-0 bg-blue-600 blur-xl opacity-20 animate-pulse" />
-          
+        {/* Branding */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center p-3 bg-ink rounded-2xl shadow-xl shadow-gold/10 mb-6">
+            <Eraser className="w-6 h-6 text-gold" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tighter uppercase leading-none">
-            NOVAR<span className="text-blue-600">EASE</span>
+          <h1 className="font-serif text-3xl tracking-[0.1em] text-ink uppercase">
+            Novarease
           </h1>
-          <p className="mt-3 text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">
-            Credential Initialization
+          <p className="mt-2 text-gold text-[9px] font-black uppercase tracking-[0.4em]">
+            Access Key Initialization
           </p>
         </div>
 
-        <div className="bg-white p-8 rounded-lg border-2 border-gray-200 shadow-2xl shadow-slate-200/50">
-          <div className="mb-8 text-center">
-            <Title level={4} className="!m-0 !font-bold uppercase tracking-tight">
-              Secure Your Account
-            </Title>
-            <p className="mt-1 text-xs text-slate-400 font-medium">
-              Hello <span className="text-blue-600 font-bold">{urlFirstName || "Personnel"}</span>, set your permanent password.
+        <div className="bg-white/70 backdrop-blur-xl p-10 rounded-[2.5rem] border border-gold/10 shadow-2xl shadow-gold/5">
+          <div className="mb-10 text-center">
+            <h2 className="font-serif text-2xl text-ink uppercase tracking-wider">
+              Establish Security
+            </h2>
+            <p className="mt-2 text-[11px] text-ink/40 font-medium tracking-wide uppercase">
+              Greetings,{" "}
+              <span className="text-gold font-bold">{urlFirstName}</span>.
+              Please define your master key.
             </p>
           </div>
 
-          <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
-            {/* Account Identity (Read-only) */}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            requiredMark={false}
+          >
+            {/* Account Identity */}
             <Form.Item
-              label={<span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Account Identity</span>}
+              label={
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold ml-1">
+                  Archive ID
+                </span>
+              }
             >
               <Input
                 disabled
-                prefix={<UserIcon size={14} className="text-slate-300" />}
-                value={urlEmail || "Encrypted User ID"}
-                className="h-12 font-bold border-slate-200 bg-slate-50 text-slate-500 rounded-xl"
+                prefix={<UserIcon size={14} className="text-gold/40 mr-2" />}
+                value={urlEmail}
+                className="h-14 border border-gold/10 bg-cream/30 text-ink/60 rounded-2xl font-bold italic"
               />
             </Form.Item>
 
             {/* Password Input */}
             <Form.Item
-              label={<span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">New Password</span>}
+              label={
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold ml-1">
+                  New Access Key
+                </span>
+              }
               name="newPassword"
-              className={showRequirements ? "mb-4" : "mb-6"}
+              className="mb-4"
             >
               <Input.Password
-                prefix={<Lock size={14} className="text-slate-300" />}
-                placeholder="Enter Password"
-                className="h-12 rounded-lg border-2 border-slate-200 hover:border-blue-200 focus:border-blue-500 transition-all text-base font-semibold"
+                prefix={<Lock size={14} className="text-gold/40 mr-2" />}
+                placeholder="Enter Secure Key"
+                className="h-14 rounded-2xl border border-gold/10 bg-white hover:border-gold/40 focus:border-gold transition-all text-base font-medium"
               />
             </Form.Item>
 
-            {/* Animated Requirements Policy */}
+            {/* Animated Requirements */}
             <AnimatePresence>
               {showRequirements && (
                 <motion.div
@@ -197,18 +189,30 @@ useEffect(() => {
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden mb-6"
                 >
-                  <div className="p-5 rounded-lg border-2 border-blue-50 bg-blue-50/30">
-                    <div className="flex items-center gap-2 mb-4">
-                      <ShieldCheck size={14} className="text-blue-600" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">
-                        Security Policy
+                  <div className="p-6 rounded-2xl border border-gold/10 bg-cream/40 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ShieldCheck size={14} className="text-gold" />
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold">
+                        Archival Encryption Policy
                       </span>
                     </div>
-                    <div className="grid grid-cols-1 gap-y-2.5">
-                      <PolicyItem text="8+ Characters" isValid={passChecks.length} />
-                      <PolicyItem text="Uppercase & Lowercase" isValid={passChecks.case} />
-                      <PolicyItem text="Numeric Digit" isValid={passChecks.number} />
-                      <PolicyItem text="Special Symbol (@$!%*?&)" isValid={passChecks.symbol} />
+                    <div className="space-y-2">
+                      <PolicyItem
+                        text="Minimum 8 Characters"
+                        isValid={passChecks.length}
+                      />
+                      <PolicyItem
+                        text="Mixed Case Complexity"
+                        isValid={passChecks.case}
+                      />
+                      <PolicyItem
+                        text="Numeric Variable"
+                        isValid={passChecks.number}
+                      />
+                      <PolicyItem
+                        text="Symbolic Identifier (@$!%*?&)"
+                        isValid={passChecks.symbol}
+                      />
                     </div>
                   </div>
                 </motion.div>
@@ -217,15 +221,19 @@ useEffect(() => {
 
             {/* Confirm Password */}
             <Form.Item
-              label={<span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Confirm Password</span>}
+              label={
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold ml-1">
+                  Verify Key
+                </span>
+              }
               name="confirmPassword"
-              className="mb-6"
+              className="mb-10"
               validateStatus={confirmPassword && !isMatch ? "error" : ""}
             >
               <Input.Password
-                prefix={<Lock size={14} className="text-slate-300" />}
-                placeholder="Repeat Password"
-                className="h-12 rounded-lg border-2 border-slate-200"
+                prefix={<Lock size={14} className="text-gold/40 mr-2" />}
+                placeholder="Confirm Secure Key"
+                className="h-14 rounded-2xl border border-gold/10 bg-white hover:border-gold/40 focus:border-gold transition-all text-base font-medium"
                 onFocus={() => setIsConfirmFocused(true)}
                 onBlur={() => setIsConfirmFocused(false)}
               />
@@ -237,16 +245,16 @@ useEffect(() => {
               loading={isLoading}
               block
               disabled={!isPasswordValid || !isMatch || isLoading}
-              className="h-12 bg-slate-900 hover:!bg-blue-600 text-white font-bold uppercase tracking-[0.2em] rounded-lg border-none shadow-lg disabled:opacity-20 transition-all active:scale-95"
+              className="h-16 bg-ink hover:!bg-gold text-cream font-black uppercase tracking-[0.3em] text-[11px] rounded-2xl border-none shadow-xl transition-all duration-500 active:scale-95 disabled:opacity-20"
             >
-              {isLoading ? "AUTHORIZING..." : "Activate Account"}
+              {isLoading ? "AUTHORIZING ARCHIVES..." : "Finalize Clearance"}
             </Button>
           </Form>
         </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} Yamatech Security Handshake
+        <div className="mt-12 text-center">
+          <p className="text-[9px] font-bold text-ink/30 uppercase tracking-[0.3em]">
+            © {new Date().getFullYear()} Novarease Security Protocols
           </p>
         </div>
       </motion.div>
@@ -254,18 +262,17 @@ useEffect(() => {
   );
 };
 
-// Main Export with Suspense
 const SetupPassword = () => {
   return (
     <ConfigProvider
       theme={{
-        token: { colorPrimary: "#2563eb", borderRadius: 16 },
+        token: { colorPrimary: "#B8973A", borderRadius: 16 },
       }}
     >
       <Suspense
         fallback={
-          <div className="min-h-screen flex items-center justify-center bg-white">
-            <Spin size="large" />
+          <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F2EB]">
+            <Loader2 className="animate-spin text-gold" size={32} />
           </div>
         }
       >

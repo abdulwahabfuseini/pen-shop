@@ -8,9 +8,11 @@ import {
   Phone,
   Key,
   ArrowRight,
-  Info,
+  Fingerprint,
 } from "lucide-react";
-import { Form, Input, Button, Row, Col, message } from "antd";
+import { Form, Input, Button, Row, Col } from "antd";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 const AccessRegister = () => {
   const [form] = Form.useForm();
@@ -28,128 +30,154 @@ const AccessRegister = () => {
       const data = await res.json();
 
       if (res.ok) {
-        message.success("Account created. UUID password sent to user's email.");
+        toast.success("Identity Curated", {
+          description: "Access credentials sent via secure email.",
+        });
         form.resetFields();
       } else {
-        message.error(data.error || "Registration failed");
+        toast.error(data.error || "Curation failed");
       }
     } catch (error) {
-      message.error("System synchronization error");
+      toast.error("Registry synchronization error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="md:min-h-screen bg-zinc-50 flex items-center justify-center p-6">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-10">
-          <div className="inline-flex p-4 bg-blue-700 text-white rounded-3xl mb-6 shadow-lg">
-            <ShieldPlus size={40} />
+    <div className="min-h-screen bg-[#F5F2EB] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-gold/5 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-ink/5 rounded-full blur-[120px]" />
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-xl w-full relative z-10"
+      >
+        {/* Branding Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center p-4 bg-ink rounded-[1.5rem] shadow-2xl shadow-gold/20 mb-6">
+            <ShieldPlus size={32} className="text-gold" />
           </div>
-          <h1 className="text-3xl font-bold text-black uppercase tracking-tighter">
-            Register User
+          <h1 className="font-serif text-4xl tracking-tight text-ink uppercase">
+            Curate Access
           </h1>
-          <p className="text-zinc-700 text-[10px] font-bold uppercase tracking-widest mt-2">
-            Initialize User Profile
+          <p className="text-gold text-[10px] font-black uppercase tracking-[0.4em] mt-3">
+            Personnel Initialization
           </p>
         </div>
 
-        <div className="bg-zinc-50 border-2 border-gray-200 p-4 rounded-lg mb-8 flex gap-3">
-          <Info className="text-blue-700 shrink-0" size={18} />
-          <p className="text-[10px] text-zinc-700 font-medium uppercase tracking-wider">
-            A temporary{" "}
-            <span className="text-blue-700 font-semibold">
-              UUID Command Key
-            </span>{" "}
-            will be emailed upon success.
+        {/* Security Notice */}
+        <div className="bg-white/40 backdrop-blur-md border border-gold/20 p-5 rounded-2xl mb-8 flex items-start gap-4">
+          <Fingerprint className="text-gold shrink-0" size={20} />
+          <p className="text-[10px] text-ink/60 font-bold uppercase tracking-widest leading-relaxed">
+            Standard Protocol: A temporary{" "}
+            <span className="text-ink">UUID Access Key</span> will be 
+            generated and dispatched to the provided email identifier.
           </p>
         </div>
 
-        <Form
-          form={form}
-          onFinish={onFinish}
-          layout="vertical"
-          requiredMark={false}
-        >
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="firstName"
-                rules={[{ required: true, message: "First name required" }]}
-              >
-                <Input
-                  prefix={<User size={18} className="text-zinc-400 mr-2" />}
-                  placeholder="First Name"
-                  className="h-12 rounded-lg text-base border-2 font-bold text-black"
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="lastName"
-                rules={[{ required: true, message: "Last name required" }]}
-              >
-                <Input
-                  prefix={<User size={18} className="text-zinc-400 mr-2" />}
-                  placeholder="Last Name"
-                  className="h-12 rounded-lg text-base border-2 font-bold text-black"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="email"
-            rules={[
-              {
-                required: true,
-                type: "email",
-                message: "Please enter a valid email",
-              },
-            ]}
+        {/* Registration Card */}
+        <div className="bg-white/70 backdrop-blur-xl p-10 rounded-[2.5rem] border border-gold/10 shadow-2xl shadow-gold/5">
+          <Form
+            form={form}
+            onFinish={onFinish}
+            layout="vertical"
+            requiredMark={false}
+            className="space-y-2"
           >
-            <Input
-              type="email"
-              prefix={<Mail size={18} className="text-zinc-400 mr-2" />}
-              placeholder="Email Address"
-              className="h-12 rounded-lg border-2 text-base font-bold"
-            />
-          </Form.Item>
+            <Row gutter={20}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="firstName"
+                  label={<span className="text-[9px] font-black uppercase tracking-widest text-gold ml-1">Legal Forename</span>}
+                  rules={[{ required: true, message: "Forename required" }]}
+                >
+                  <Input
+                    prefix={<User size={16} className="text-gold/40 mr-2" />}
+                    placeholder="e.g. Jane"
+                    className="h-14 rounded-2xl border border-gold/10 bg-[#F5F2EB]/50 hover:border-gold/40 focus:border-gold transition-all text-sm font-medium"
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="lastName"
+                  label={<span className="text-[9px] font-black uppercase tracking-widest text-gold ml-1">Surname</span>}
+                  rules={[{ required: true, message: "Surname required" }]}
+                >
+                  <Input
+                    prefix={<User size={16} className="text-gold/40 mr-2" />}
+                    placeholder="e.g. Doe"
+                    className="h-14 rounded-2xl border border-gold/10 bg-[#F5F2EB]/50 hover:border-gold/40 focus:border-gold transition-all text-sm font-medium"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Form.Item
-            name="phoneNumber"
-            rules={[{ required: true, message: "Please enter phone number" }]}
-          >
-            <Input
-              prefix={<Phone size={18} className="text-zinc-400 mr-2" />}
-              placeholder="Phone Number"
-              className="h-12 rounded-lg border-2 text-base font-bold"
-            />
-          </Form.Item>
+            <Form.Item
+              name="email"
+              label={<span className="text-[9px] font-black uppercase tracking-widest text-gold ml-1">Registry Email</span>}
+              rules={[
+                {
+                  required: true,
+                  type: "email",
+                  message: "Valid email identifier required",
+                },
+              ]}
+            >
+              <Input
+                type="email"
+                prefix={<Mail size={16} className="text-gold/40 mr-2" />}
+                placeholder="identity@novarease.com"
+                className="h-14 rounded-2xl border border-gold/10 bg-[#F5F2EB]/50 hover:border-gold/40 focus:border-gold transition-all text-sm font-medium"
+              />
+            </Form.Item>
 
-          <Form.Item
-            name="secretKey"
-            rules={[{ required: true, message: "Secret key required" }]}
-          >
-            <Input.Password
-              prefix={<Key size={18} className="text-blue-700/50 mr-2" />}
-              placeholder="System Secret Key"
-              className="h-12 rounded-lg border-2 text-base font-bold"
-            />
-          </Form.Item>
+            <Form.Item
+              name="phoneNumber"
+              label={<span className="text-[9px] font-black uppercase tracking-widest text-gold ml-1">Contact String</span>}
+              rules={[{ required: true, message: "Phone number required" }]}
+            >
+              <Input
+                prefix={<Phone size={16} className="text-gold/40 mr-2" />}
+                placeholder="+1 (555) 000-0000"
+                className="h-14 rounded-2xl border border-gold/10 bg-[#F5F2EB]/50 hover:border-gold/40 focus:border-gold transition-all text-sm font-medium"
+              />
+            </Form.Item>
 
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            className="w-full h-12 bg-blue-700 hover:bg-black text-white font-bold uppercase tracking-widest rounded-lg border-none flex items-center justify-center gap-2"
-          >
-            {loading ? "Creating User..." : "Create Profile"}{" "}
-            <ArrowRight size={16} />
-          </Button>
-        </Form>
-      </div>
+            <Form.Item
+              name="secretKey"
+              label={<span className="text-[9px] font-black uppercase tracking-widest text-gold ml-1">Master Clearance Key</span>}
+              rules={[{ required: true, message: "Secret key required" }]}
+              className="mb-10"
+            >
+              <Input.Password
+                prefix={<Key size={16} className="text-gold/40 mr-2" />}
+                placeholder="Required for registry write-access"
+                className="h-14 rounded-2xl border border-gold/10 bg-[#F5F2EB]/50 hover:border-gold/40 focus:border-gold transition-all text-sm font-medium"
+              />
+            </Form.Item>
+
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              className="w-full h-16 bg-ink hover:!bg-gold text-cream font-black uppercase tracking-[0.3em] text-[11px] rounded-2xl border-none shadow-xl transition-all duration-500 active:scale-95 flex items-center justify-center group"
+            >
+              {loading ? "INITIALIZING..." : "Authorize Registry"}
+              {!loading && <ArrowRight size={16} className="ml-3 group-hover:translate-x-1 transition-transform text-gold" />}
+            </Button>
+          </Form>
+        </div>
+
+        <div className="text-center mt-12">
+          <p className="text-[9px] font-bold text-ink/30 uppercase tracking-[0.2em] leading-relaxed italic">
+            Novarease Archival Bureau &bull; Internal Personnel Onboarding System
+          </p>
+        </div>
+      </motion.div>
     </div>
   );
 };
