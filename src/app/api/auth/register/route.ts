@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 
 export async function GET(req: Request) {
   try {
-    // const secretKey = req.headers.get("x-secret-key");
+    // const secretKey = req.headers.get("x-secret-Password");
     // if (secretKey !== process.env.USER_SECRET_KEY) {
     //   return NextResponse.json(
     //     { error: "Unauthorized access" },
@@ -75,67 +75,72 @@ export async function POST(req: Request) {
       );
     }
 
-    const tempPassword = uuidv4().substring(0, 8); 
+    const tempPassword = uuidv4().substring(0, 8);
     const hashedPassword = await bcrypt.hash(tempPassword, 12);
     const appName = "YamaTech Ltd";
 
     try {
-       const isRoleAdmin = role === "ADMIN";
+      const isRoleAdmin = role === "ADMIN";
 
       await transporter.sendMail({
-        from: `"YAMATECH SECURITY" <${process.env.EMAIL_USER}>`,
+        from: `"NOVAREASE ARCHIVAL BUREAU" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: `Access Granted - ${isRoleAdmin ? "Administrative" : "Staff"} Portal`,
+        subject: `Access Authorized — Novarease ${isRoleAdmin ? "Curator" : "Registry"} Portal`,
         html: `
-    <div style="background-color: #f1f5f9; padding: 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b;">
-      <div style="max-width: 620px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+    <div style="background-color: #F5F2EB; padding: 40px 20px; font-family: 'Georgia', serif; color: #1A1A18; text-align: center;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 4px; border: 1px solid rgba(184, 151, 58, 0.2); overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.05);">
         
         <!-- Header -->
-        <div style="background-color: ${isRoleAdmin ? "#0f172a" : "#2563eb"}; padding: 30px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 2px; font-weight: 900;">
-            ${isRoleAdmin ? "Admin Account Provisioned" : "Staff Account Created"}
-          </h1>
+        <div style="background-color: #1A1A18; padding: 50px 30px; border-bottom: 4px solid #B8973A;">
+          <div style="font-size: 24px; letter-spacing: 0.3em; color: #F5F2EB; text-transform: uppercase; font-weight: 300;">
+            Novarease
+          </div>
+          <div style="font-family: 'Arial', sans-serif; font-[10px]; letter-spacing: 0.5em; color: #B8973A; text-transform: uppercase; margin-top: 10px; font-weight: bold;">
+           Admin Dashboard
+          </div>
         </div>
 
         <!-- Body -->
-        <div style="padding: 30px 20px;">
-          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
-            Hello <b>${firstName}</b>,
+        <div style="padding: 50px 40px; text-align: left;">
+          <p style="font-size: 18px; line-height: 1.6; margin-bottom: 25px; color: #1A1A18;">
+            Greetings, <b>${firstName}</b>.
           </p>
-          <p>You have been assigned <b>${role}</b> access to the Yamatech Inventory System.</p>
+          <p style="font-family: 'Arial', sans-serif; font-size: 14px; line-height: 1.8; color: #4A4A48; margin-bottom: 30px;">
+            Your identity has been successfully verified. You have been granted <b>${role}</b> Access to the Novarease internal collection and inventory registry.
+          </p>
 
-          <!-- Credential Box -->
-          <div style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; margin: 20px 0; text-align: center;">
-            <p style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px;">
-              Temporary Access Password
+          <!-- Credential Dossier -->
+          <div style="background-color: #FDFCF9; border: 1px solid #B8973A; padding: 30px; margin-bottom: 35px; text-align: center;">
+            <p style="font-family: 'Arial', sans-serif; font-size: 9px; color: #B8973A; text-transform: uppercase; font-weight: 900; margin-bottom: 15px; letter-spacing: 3px;">
+              Temporary Password
             </p>
-            <div style="background-color: #ffffff; border: 1.5px dashed #cbd5e1; padding: 12px; display: inline-block; min-width: 200px;">
-              <span style="font-size: 22px; color: #2563eb; font-weight: bold; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px;">
+            <div style="display: inline-block; padding: 10px 20px; border-bottom: 2px solid #1A1A18;">
+              <span style="font-size: 26px; color: #1A1A18; font-weight: bold; font-family: 'Courier New', monospace; letter-spacing: 4px;">
                 ${tempPassword}
               </span>
             </div>
           </div>
 
-          <div style="border-left: 4px solid #2563eb; padding-left: 15px; margin-bottom: 30px;">
-            <p style="font-size: 13px; color: #475569; margin: 0;">
-              <b>Security Requirement:</b> You will be required to update this temporary password immediately upon your first successful login to ensure account integrity.
+          <div style="border-left: 2px solid #B8973A; padding-left: 20px; margin-bottom: 40px;">
+            <p style="font-family: 'Arial', sans-serif; font-size: 12px; color: #1A1A18; font-style: italic; line-height: 1.6; margin: 0;">
+              <b>Security Protocol:</b> This Password is valid for initial entry only. You are required to define a permanent master password upon your first handshake with the system.
             </p>
           </div>
 
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/signin" 
-             style="display: block; background-color: #0f172a; color: #ffffff; padding: 15px; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
-            Access Dashboard
+             style="display: block; background-color: #1A1A18; color: #B8973A; padding: 20px; text-align: center; text-decoration: none; font-family: 'Arial', sans-serif; font-weight: bold; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; border-radius: 2px;">
+            Authorize Session
           </a>
         </div>
 
         <!-- Footer -->
-        <div style="background-color: #f8fafc; padding: 30px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-          <p style="margin: 0; font-weight: bold; color: #64748b;">
-            &copy; ${new Date().getFullYear()} YAMATECH | IT Security Department
+        <div style="background-color: #FDFCF9; padding: 40px; text-align: center; font-family: 'Arial', sans-serif; border-top: 1px solid rgba(184, 151, 58, 0.1);">
+          <p style="margin: 0; font-size: 10px; font-weight: bold; color: #1A1A18; letter-spacing: 2px; text-transform: uppercase;">
+            © ${new Date().getFullYear()} Novarease Security Protocols
           </p>
-          <p style="margin: 5px 0 0;">Authorized Personnel Only</p>
-          <p style="margin: 15px 0 0; font-size: 10px;">
-            This is an automated system message. Please do not reply directly to this email.
+          <p style="margin: 8px 0 0; font-size: 9px; color: #B8973A; letter-spacing: 1px;">PRIVATE ARCHIVE | AUTHORIZED PERSONNEL ONLY</p>
+          <p style="margin: 25px 0 0; font-size: 9px; color: #A1A19E; font-style: italic; line-height: 1.5;">
+            This is an automated transmission from the Archival Bureau. <br/> Access attempts are logged under archival ID: ${email}.
           </p>
         </div>
       </div>

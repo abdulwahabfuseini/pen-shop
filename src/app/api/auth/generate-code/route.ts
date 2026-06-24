@@ -5,13 +5,12 @@ import nodemailer from "nodemailer";
 const prisma = new PrismaClient();
 
 const transporter = nodemailer.createTransport({
-  service: "gmail", 
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
-
 
 export async function POST(req: Request) {
   try {
@@ -38,60 +37,69 @@ export async function POST(req: Request) {
 
     // Send the email
     await transporter.sendMail({
-      from: `"YAMATECH SECURITY" <${process.env.EMAIL_USER}>`,
+      from: `"NOVAREASE ARCHIVAL BUREAU" <${process.env.EMAIL_USER}>`,
       to: admin.email,
-      // Including the code in the subject is a professional UX practice for mobile notifications
-      subject: `Verification Code: ${code} - Yamatech Security`,
+      subject: `Authorization Token: ${code} — Novarease Access`,
       html: `
-    <div style="background-color: #f1f5f9; padding: 30px 15px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b;">
-      <div style="max-width: 450px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+    <div style="background-color: #F5F2EB; padding: 50px 20px; font-family: 'Georgia', serif; color: #1A1A18;">
+      <div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; border: 1px solid rgba(184, 151, 58, 0.2); overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);">
         
-        <!-- Security Accent Bar -->
-        <div style="height: 6px; background-color: #2563eb;"></div>
+        <!-- Luxury Top Bar -->
+        <div style="height: 4px; background-color: #B8973A;"></div>
 
-        <div style="padding: 30px 15px; text-align: center;">
+        <div style="padding: 50px 40px; text-align: center;">
+          
           <!-- Branding -->
-          <div style="margin-bottom: 30px;">
-            <h1 style="margin: 0; font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">
-              YAMA<span style="color: #2563eb;">TECH</span>
+          <div style="margin-bottom: 40px;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: normal; letter-spacing: 0.3em; color: #1A1A18; text-transform: uppercase;">
+              Novarease
             </h1>
-            <p style="margin: 5px 0 0; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px;">
-               Identity Verification
+            <p style="margin: 10px 0 0; font-family: 'Arial', sans-serif; font-size: 9px; font-weight: bold; color: #B8973A; text-transform: uppercase; letter-spacing: 4px;">
+               Identity Authorization
             </p>
           </div>
 
-          <h2 style="margin: 0 0 10px; font-size: 18px; font-weight: 700; color: #1e293b;">Authentication Required</h2>
-          <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;">
-            Please enter the following one-time passcode to complete your authorization.
+          <h2 style="margin: 0 0 15px; font-size: 18px; font-weight: normal; color: #1A1A18; font-style: italic;">
+            Secure Handshake Required
+          </h2>
+          <p style="margin: 0; font-family: 'Arial', sans-serif; font-size: 13px; color: #4A4A48; line-height: 1.8; letter-spacing: 0.02em;">
+            An administrative session is being requested for the Novarease archives. Please use the following unique token to finalize your authorization.
           </p>
 
           <!-- Passcode Display -->
-          <div style="margin: 35px 0; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
-            <div style="font-size: 42px; font-weight: 900; letter-spacing: 12px; color: #0f172a; font-family: 'Courier New', Courier, monospace; margin-left: 12px;">
+          <div style="margin: 45px 0; padding: 40px 20px; background-color: #FDFCF9; border: 1px solid #B8973A;">
+            <div style="font-size: 48px; font-weight: bold; letter-spacing: 14px; color: #1A1A18; font-family: 'Courier New', Courier, monospace; margin-left: 14px;">
               ${code}
             </div>
-            <div style="margin-top: 15px; display: inline-block; padding: 4px 12px; background-color: #fef2f2; border-radius: 4px;">
-              <span style="font-size: 11px; font-weight: bold; color: #ef4444; text-transform: uppercase; letter-spacing: 1px;">
+            <div style="margin-top: 25px;">
+              <span style="font-family: 'Arial', sans-serif; font-size: 9px; font-weight: 900; color: #B8973A; text-transform: uppercase; letter-spacing: 3px;">
                 Valid for 10 minutes
               </span>
             </div>
           </div>
 
-          <!-- Alert Box -->
-          <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; text-align: left;">
-            <p style="margin: 0; font-size: 12px; color: #92400e; line-height: 1.4;">
-              <b>Security Protocol:</b> If you did not attempt to sign in to Yamatech Pro, please change your password immediately and contact your system administrator.
+          <!-- Subtle Alert Inset -->
+          <div style="background-color: #FDFCF9; border-left: 2px solid #1A1A18; padding: 20px; text-align: left; margin-top: 20px;">
+            <p style="margin: 0; font-family: 'Arial', sans-serif; font-size: 11px; color: #1A1A18; line-height: 1.6; font-style: italic;">
+              <b>Archival Protocol:</b> If you did not initiate this handshake, your master key may be compromised. Please notify the Bureau immediately.
             </p>
           </div>
         </div>
 
-        <!-- Corporate Footer -->
-        <div style="background-color: #f8fafc; padding: 25px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-          <p style="margin: 0; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">
-            &copy; ${new Date().getFullYear()} YAMATECH | IT Security Department
+        <!-- Professional Boutique Footer -->
+        <div style="background-color: #FDFCF9; padding: 35px; text-align: center; font-family: 'Arial', sans-serif; border-top: 1px solid rgba(184, 151, 58, 0.1);">
+          <p style="margin: 0; font-size: 9px; font-weight: bold; color: #1A1A18; text-transform: uppercase; letter-spacing: 3px;">
+            © ${new Date().getFullYear()} Novarease Security & Archival Bureau
           </p>
-          <p style="margin: 4px 0 0; font-weight: bold; color: #cbd5e1;">Authorized Personnel Only</p>
+          <p style="margin: 8px 0 0; font-size: 8px; color: #B8973A; text-transform: uppercase; letter-spacing: 2px;">Authorized Personnel Curation Only</p>
         </div>
+      </div>
+      
+      <!-- Bottom Decorative Link -->
+      <div style="text-align: center; margin-top: 30px;">
+        <p style="font-size: 10px; color: #1A1A18; opacity: 0.3; text-transform: uppercase; letter-spacing: 2px;">
+            Encryption ID: NVR-${Date.now().toString().slice(-6)}
+        </p>
       </div>
     </div>
   `,
