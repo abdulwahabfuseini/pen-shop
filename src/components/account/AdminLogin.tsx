@@ -2,7 +2,14 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, ArrowRight, ShieldAlert, Fingerprint } from "lucide-react";
+import {
+  Lock,
+  ArrowRight,
+  Eraser,
+  Fingerprint,
+  Mail,
+  ShieldCheck,
+} from "lucide-react";
 import { Form, Input, Button } from "antd";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -13,7 +20,7 @@ const AdminLogin = () => {
   const router = useRouter();
 
   if (status === "authenticated") {
-    router.replace("/admin-dashboard");
+    router.replace("/admin/dashboard");
     return null;
   }
 
@@ -32,10 +39,11 @@ const AdminLogin = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // --- CRITICAL ROLE CHECK ---
-        // Verify the user is an Admin before allowing them to move forward
         if (data.role !== "ADMIN") {
-          toast.error("Access Denied: Administrative privileges required.");
+          toast.error("Access Denied", {
+            description:
+              "Administrative privileges are required for this sector.",
+          });
           setLoading(false);
           return;
         }
@@ -43,17 +51,20 @@ const AdminLogin = () => {
         const params = new URLSearchParams({
           id: data.userId || "",
           em: data.email || "",
-          fn: data.firstName || "Personnel",
+          fn: data.firstName || "",
           ln: data.lastName || "",
-          target: "admin", // Flag to tell the next page where to redirect
         }).toString();
 
         if (data.nextStep === "SET_NEW_PASSWORD") {
           router.push(`/setup-password?${params}`);
-          toast.success("Identity verified. Please set your admin password.");
+          toast.success("Identity Verified", {
+            description: "Initialize your master password.",
+          });
         } else if (data.nextStep === "VERIFY_2FA") {
           router.push(`/verify?${params}`);
-          toast.success("Security code dispatched to admin email.");
+          toast.success("Security Clearance", {
+            description: "Verification code dispatched to your secure email.",
+          });
         }
       } else {
         toast.error(data.error || "Authentication failed");
@@ -66,88 +77,82 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6 font-sans">
-      {/* Background Decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-3xl" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-slate-200/50 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-[#F5F2EB] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-gold/5 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-ink/5 rounded-full blur-[120px]" />
 
-      <div className="max-w-[400px] w-full relative z-10">
-        {/* Branding Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tighter uppercase leading-none">
-            YAMA<span className="text-blue-600">TECH</span>
-          </h1>
-
-          <div className="flex justify-center items-center gap-1 mt-4 mb-2">
-            <div className="h-1 w-6 rounded-full bg-[#EF4444]" />
-            <div className="h-1 w-6 rounded-full bg-[#FACC15]" />
-            <div className="h-1 w-6 rounded-full bg-[#22C55E]" />
+      <div className="max-w-[420px] w-full relative z-10">
+        {/* Luxury Branding */}
+        <div className="text-center mb-7 animate-in fade-in slide-in-from-top-4 duration-1000">
+          <div className="inline-flex items-center justify-center p-4 bg-ink rounded-[1.5rem] shadow-2xl shadow-gold/20 mb-6">
+            <Eraser className="w-8 h-8 text-gold" />
           </div>
-
-          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">
-            Admin Control Center
+          <h1 className="font-serif text-4xl tracking-[0.1em] text-ink uppercase">
+            Novarease
+          </h1>
+          <p className="text-gold text-[10px] font-black uppercase tracking-[0.4em] mt-3">
+            Admin Portal
           </p>
         </div>
 
-        {/* Login Card */}
-        <div className="bg-white p-8 rounded-lg border-2 border-slate-200 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
-          {/* Subtle Security Badge */}
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <ShieldAlert size={50} />
-          </div>
-
+        {/* Access Card */}
+        <div className="bg-white/70 backdrop-blur-xl p-10 rounded-lg border border-gold/10 shadow-2xl shadow-gold/5 relative overflow-hidden">
           <Form onFinish={onFinish} layout="vertical" requiredMark={false}>
-            <div className="space-y-1 mb-8 text-center">
-              <h3 className="text-xl font-bold text-slate-800 uppercase tracking-tight">
-                Admin Access
+            <div className="space-y-1 mb-4 text-center">
+              <h3 className="font-serif text-xl text-ink uppercase tracking-wider">
+                Access Dashboard
               </h3>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-                Authorized Admin Personnel Only
-              </p>
+              <div className="h-px w-12 bg-gold/30 mx-auto mt-4" />
             </div>
 
-            <Form.Item
-              label="Email"
-              name="identifier"
-              rules={[
-                {
-                  required: true,
-                  type: "email",
-                  message: "Admin email required",
-                },
-              ]}
-              className="mb-4"
-            >
-              <Input
-                type="email"
-                prefix={<Mail size={18} className="text-slate-400 mr-2" />}
-                placeholder="Admin Email"
-                className="h-12 border-2 rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white transition-all text-base font-semibold"
-              />
-            </Form.Item>
+            <div className="space-y-6">
+              <Form.Item
+                name="identifier"
+                rules={[
+                  {
+                    required: true,
+                    type: "email",
+                    message: "Email required",
+                  },
+                ]}
+              >
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
+                    Email Identifier
+                  </label>
+                  <Input
+                    prefix={<Mail size={16} className="text-gold/40 mr-2" />}
+                    placeholder="curator@novarease.com"
+                    className="h-12 border-2 border-gold/10 rounded-lg bg-[#F5F2EB]/50 hover:border-gold/40 focus:border-gold transition-all text-base font-medium"
+                  />
+                </div>
+              </Form.Item>
 
-            <Form.Item
-              label="Password"
-              name="password"
-              rules={[{ required: true, message: "Security key required" }]}
-              className="mb-2"
-            >
-              <Input.Password
-                prefix={<Lock size={18} className="text-slate-400 mr-2" />}
-                placeholder="Access Password"
-                className="h-12 border-2 rounded-lg border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white transition-all text-base font-semibold"
-              />
-            </Form.Item>
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: "Security key required" }]}
+              >
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gold uppercase tracking-widest ml-1">
+                    Password
+                  </label>
+                  <Input.Password
+                    prefix={<Lock size={16} className="text-gold/40 mr-2" />}
+                    placeholder="••••••••"
+                    className="h-12 border-2 border-gold/10 rounded-lg bg-[#F5F2EB]/50 hover:border-gold/40 focus:border-gold transition-all text-base font-medium"
+                  />
+                </div>
+              </Form.Item>
+            </div>
 
-            <div className="flex justify-end mt-2 mb-8">
+            <div className="flex justify-right mt-6 mb-10">
               <button
                 type="button"
                 onClick={() => router.push("/forgot-password")}
-                className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-colors"
+                className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink/30 hover:text-gold transition-colors"
               >
-                Forgot Password?
+                Forgot Password
               </button>
             </div>
 
@@ -155,24 +160,26 @@ const AdminLogin = () => {
               type="primary"
               htmlType="submit"
               loading={loading}
-              className="w-full h-12 bg-blue-900 hover:!bg-slate-900 text-white font-bold uppercase tracking-[0.2em2 border-2 rounded-lg border-none shadow-lg flex items-center justify-center group"
+              className="w-full h-12 bg-ink hover:!bg-gold text-cream font-bold uppercase tracking-[0.3-2em] text-[11px] rounded-lg border-none shadow-xl flex items-center justify-center group transition-all duration-500"
             >
-              {loading ? "Authenticating..." : "Access Dashboard"}
+              {!loading && "Authorize Session"}
+              {loading && "Verifying Archival Rights..."}
               {!loading && (
                 <ArrowRight
-                  size={18}
-                  className="ml-2 group-hover:translate-x-1 transition-transform"
+                  size={16}
+                  className="ml-3 group-hover:translate-x-1 transition-transform text-gold"
                 />
               )}
             </Button>
           </Form>
         </div>
 
-        <div className="text-center mt-8">
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-relaxed">
-            &copy; {new Date().getFullYear()} Yamatech Ghana Ltd.
+        {/* Secure Footer */}
+        <div className="text-center mt-12 space-y-4">
+          <p className="text-[9px] font-medium text-ink/30 uppercase tracking-[0.2em] leading-relaxed">
+            © {new Date().getFullYear()} Novarease Archival Bureau.
             <br />
-            AES-256 Encrypted Session
+            Unauthorized access attempts are logged and reported.
           </p>
         </div>
       </div>
